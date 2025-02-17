@@ -1,0 +1,62 @@
+
+```1. Core Features Overview
+Your project allows citizens to report infrastructure issues (e.g., potholes, broken streetlights) with location data. Other users can vote and comment on these issues, while admins can review, update, and escalate them to the government.
+
+🔹 2. Users & Roles
+👤 Regular Users
+Can report issues (title, description, category, location, image).
+Can view all reported issues.
+Can upvote/downvote issues to highlight important problems.
+Can comment on issues to add more details.
+Can see the status of issues (Pending, In Progress, Resolved).
+
+ Admins
+Can view and manage reported issues.
+Can update issue status (Pending → In Progress → Resolved).
+Can delete inappropriate reports/comments.
+Can forward issues to government officials (via email or dashboard).
+Can view analytics (heatmaps, top issues, user engagement data).
+
+Issues Table
+ID	Title	Description	Category	Location	Image URL	Status	Votes	User ID
+1	Pothole	Huge pothole on main road	Road	Lat, Long	img.jpg	Pending	15	1
+3️⃣ Comments Table
+ID	Issue ID	User ID	Comment Text	Timestamp
+1	1	2	"This needs fixing ASAP!"	2025-02-06
+4️⃣ Votes Table
+ID	Issue ID	User ID	Vote Type (Up/Down)
+1	1	3	Upvote
+5️⃣ Admins Table (Optional, if separate from Users)
+ID	Name	Email	Password (hashed)
+1	Admin1	admin@example.com	(hashed)
+
+
+4. User Flow
+👤 A. User Reports an Issue
+The user visits the homepage and sees a "Report Issue" button.
+The user fills out the form (title, description, category, location, image).
+The form sends data to POST /report.
+The server saves the issue in the database with status = "Pending".
+The user sees a confirmation message.
+👀 B. Viewing Reported Issues
+The user/admin visits /issues.
+The backend fetches data from the database (GET /issues).
+The frontend displays a list of issues with details.
+👍 C. Voting on Issues
+The user clicks Upvote/Downvote.
+The frontend sends a request to POST /vote/{issue_id}.
+The backend updates the vote count.
+💬 D. Commenting on Issues
+The user enters a comment.
+The frontend sends a request to POST /comment/{issue_id}.
+The backend stores the comment.
+The comment appears under the issue.
+🛠️ E. Admin Manages Issues
+The admin logs in.
+The admin sees all issues in a dashboard.
+The admin can change issue status (PUT /update-status/{issue_id}).
+The admin can delete spam issues/comments (DELETE /issue/{id}).
+🏛️ F. Forwarding to Government
+The admin clicks "Forward to Government".
+The system emails the details to a government official.
+The issue status updates to "Sent to Government".

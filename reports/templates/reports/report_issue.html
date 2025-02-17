@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report Issue</title>
+
+    <!-- Include Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            padding: 20px;
+        }
+        h2 {
+            color: #fff;
+            text-align: center;
+            background-color: #003366; /* Dark blue background for title */
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-size: 28px; /* Increased font size */
+        }
+        form {
+            background: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            margin: 10px 0;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #003366; /* Dark blue color */
+            color: white;
+            padding: 15px; /* Increased padding */
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%; /* Full width */
+            font-size: 18px; /* Larger text size */
+        }
+        button:hover {
+            background-color: #002244; /* Darker blue on hover */
+        }
+        #map {
+            height: 500px; /* Increased height for better visibility */
+            width: 100%;
+            margin-top: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        #error-message { color: red; display: none; margin-top: 10px; }
+    </style>
+        
+</head>
+<body>
+    <div class="container">
+        <h2>Report Issue</h2>
+        <form id="issue-form" method="POST" action="{% url 'report_issue' %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            <label for="title">Title:</label>
+            <input type="text" id="title" name="title" required><br><br>
+        
+            <label for="description">Description:</label>
+            <textarea id="description" name="description" required></textarea><br><br>
+        
+            <label for="category">Category:</label>
+            <select id="category" name="category" required>
+                <option value="Road">🚧 Road</option>
+                <option value="Electricity">⚡ Electricity</option>
+                <option value="Water">💧 Water</option>
+                <option value="Internet">📶 Internet</option>
+                <option value="Public Transport">🚌 Public Transport</option>
+                <option value="Waste Management">🗑️ Waste Management</option>
+                <option value="Other">🔧 Other</option>
+            </select><br><br>
+        
+            <label for="location">Location:</label>
+            <input type="text" id="location" name="location" placeholder="Enter address (Optional)" readonly><br><br>
+        
+            <label for="image">Image:</label>
+            <input type="file" id="image" name="image" accept="image/*"><br><br>
+        
+            <!-- Hidden inputs for lat/lng -->
+            <input type="hidden" id="lat" name="lat">
+            <input type="hidden" id="lng" name="lng">
+        
+            <!-- Map container -->
+            <div id="map"></div><br>
+
+            <button type="submit">Submit Issue</button>
+        </form>
+    </div>
+
+    <!-- Error message container -->
+    <div id="error-message"></div>
+
+    <!-- Include Leaflet JS -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        let map, marker;
+
+        function initializeMap(latitude, longitude) {
+            map = L.map('map').setView([latitude, longitude], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+
+            marker = L.marker([latitude, longitude], { draggable: true }).addTo(map);
+            document.getElementById("lat").value = latitude;
+            document.getElementById("lng").value = longitude;
+            document.getElementById("location").value = latitude + ', ' + longitude; // Update location input
+
+            marker.on('dragend', function(event) {
+                const latlng = event.target.getLatLng();
+                document.getElementById("lat").value = latlng.lat;
+                document.getElementById("lng").value = latlng.lng;
+                document.getElementById("location").value = latlng.lat + ', ' + latlng.lng;
+            });
+
+            // Animate map zoom to user's location
+            map.setView([latitude, longitude], 15, { animate: true });
+        }
+
+        // Handle geolocation
+        
+
+        function getCurrentLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        initializeMap(position.coords.latitude, position.coords.longitude);
+                    },
+                    function(error) {
+                        console.error("Error getting location: ", error);
+                        alert("Location access denied. Please select your location manually.");
+                        initializeMap(19.0760, 72.8777); // Default to Mumbai
+                    }
+                );
+            } else {
+                alert("Geolocation is not supported by this browser.");
+                initializeMap(19.0760, 72.8777);
+            }
+        }
+
+        document.getElementById("issue-form").addEventListener("submit", function (e) {
+    e.preventDefault();  // Prevent the form from submitting normally
+
+    const errorMessageDiv = document.getElementById("error-message");
+    errorMessageDiv.style.display = "none"; // Hide error message initially
+
+    const lat = document.getElementById("lat").value;
+    const lng = document.getElementById("lng").value;
+
+    if (!lat || !lng) {
+        errorMessageDiv.textContent = "Location is missing. Please enable location services or select manually.";
+        errorMessageDiv.style.display = "block";
+        return;
+    }
+
+    const formData = new FormData(document.getElementById("issue-form"));
+
+    fetch("{% url 'report_issue' %}", {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.message) {
+            alert("Issue reported successfully! Your token is: " + data.token); // Show token in alert
+            // Redirect to the issue detail page using the correct URL pattern
+            window.location.href = `/issues/${data.issue_id}/`;
+        } else if (data.error) {
+            errorMessageDiv.textContent = data.error; // Display specific error message
+            errorMessageDiv.style.display = "block";
+        } else {
+            errorMessageDiv.textContent = "Error reporting issue. Please try again.";
+            errorMessageDiv.style.display = "block";
+        }
+    })
+    .catch(error => {
+        errorMessageDiv.textContent = "An error occurred. Please try again.";
+        errorMessageDiv.style.display = "block";
+        console.error("Error:", error);
+    });
+});
+
+        window.onload = getCurrentLocation;
+    </script>
+</body>
+</html>

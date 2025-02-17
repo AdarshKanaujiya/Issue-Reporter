@@ -1,0 +1,11 @@
+Django
+torch
+torchvision
+torchaudio
+transformers
+numpy
+requests
+pillow
+django-cors-headers
+django-rest-framework
+googlemaps

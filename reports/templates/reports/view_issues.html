@@ -1,0 +1,161 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Reported Issues</title>
+    <style>
+        /* General Styles */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Container */
+        .container {
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        /* Headings */
+        h2 {
+            color: #003366;
+            margin-bottom: 20px;
+        }
+
+        /* Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background-color: #003366;
+            color: white;
+        }
+
+        /* Status Styling */
+        .status {
+            font-weight: bold;
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+
+        .pending {
+            background-color: #ffcc00;
+            color: black;
+        }
+
+        .in-progress {
+            background-color: #0099ff;
+            color: white;
+        }
+
+        .resolved {
+            background-color: #28a745;
+            color: white;
+        }
+
+        /* Image Styling */
+        .issue-image {
+            max-width: 100px;
+            height: auto;
+            border-radius: 5px;
+        }
+
+        /* Before-After Image Styling */
+        .image-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .image-container img {
+            max-width: 100px;
+            height: auto;
+            border-radius: 5px;
+        }
+
+        /* Back Link */
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            text-decoration: none;
+            font-weight: bold;
+            color: #003366;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>All Reported Issues</h2>
+
+        {% if issues %}
+            <table>
+                <tr>
+                    <th>Title</th>
+                    <th>Category</th>
+                    <th>Status</th>
+                    <th>Image</th>
+                    <th>Before & After</th>
+                </tr>
+                {% for issue in issues %}
+                <tr>
+                    <td>{{ issue.title }}</td>
+                    <td>{{ issue.category }}</td>
+                    <td>
+                        <span class="status 
+                            {% if issue.status == 'Pending' %}pending
+                            {% elif issue.status == 'In Progress' %}in-progress
+                            {% elif issue.status == 'Resolved' %}resolved{% endif %}">
+                            {{ issue.status }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if issue.image %}
+                            <img src="{{ issue.image.url }}" alt="Issue Image" class="issue-image">
+                        {% else %}
+                            No Image
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if issue.status == 'Resolved' and issue.before_image and issue.after_image %}
+                            <div class="image-container">
+                                <img src="{{ issue.before_image.url }}" alt="Before">
+                                <img src="{{ issue.after_image.url }}" alt="After">
+                            </div>
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+        {% else %}
+            <p>No reported issues available.</p>
+        {% endif %}
+
+        <a href="{% url 'issue_list' %}" class="button">Back to Issue List</a>
+        
+    </div>
+</body>
+</html>

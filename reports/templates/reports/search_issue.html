@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Issue by Token</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 20px;
+        }
+        header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px;
+            text-align: center;
+        }
+        form {
+            max-width: 400px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        label {
+            font-weight: bold;
+            margin-bottom: 8px;
+            display: block;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .results {
+            margin-top: 20px;
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .results ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .results li {
+            margin-bottom: 15px;
+        }
+        .results li strong {
+            color: #333;
+        }
+        .no-results {
+            color: #ff0000;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Search Issue by Token</h1>
+    </header>
+
+    <form method="GET" action="{% url 'search_issue' %}">
+        <label for="token">Enter Token:</label>
+        <input type="text" id="token" name="token" required placeholder="Enter the token here">
+        <button type="submit">Search</button>
+    </form>
+
+    {% if issues %}
+        <div class="results">
+            <h2>Search Results:</h2>
+            <ul>
+                {% for issue in issues %}
+                    <li>
+                        <strong>Title:</strong> {{ issue.title }}<br>
+                        <strong>Token:</strong> {{ issue.token }}<br>
+                        <strong>Description:</strong> {{ issue.description }}<br>
+                        <strong>Status:</strong> {{ issue.status }}<br>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% elif request.GET.token %}
+        <p class="no-results">No issues found for this token. Please check and try again.</p>
+    {% endif %}
+
+</body>
+</html>

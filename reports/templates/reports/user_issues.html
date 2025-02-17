@@ -1,0 +1,137 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Reported Issues</title>
+    <style>
+        /* General Styles */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Container */
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        /* Headings */
+        h2 {
+            color: #003366;
+            margin-bottom: 20px;
+        }
+
+        /* Table */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background-color: #003366;
+            color: white;
+        }
+
+        /* Status Styling */
+        .status {
+            font-weight: bold;
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+
+        .pending {
+            background-color: #ffcc00;
+            color: black;
+        }
+
+        .in-progress {
+            background-color: #0099ff;
+            color: white;
+        }
+
+        .resolved {
+            background-color: #28a745;
+            color: white;
+        }
+
+        /* Image Preview */
+        .issue-image {
+            max-width: 100px;
+            height: auto;
+            border-radius: 5px;
+        }
+
+        /* Back Link */
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            text-decoration: none;
+            font-weight: bold;
+            color: #003366;
+        }
+
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Your Reported Issues</h2>
+
+        {% if issues %}
+            <table>
+                <tr>
+                    <th>Title</th>
+                    <th>Category</th>
+                    <th>Status</th>
+                    <th>Image</th>
+                </tr>
+                {% for issue in issues %}
+                <tr>
+                    <td>{{ issue.title }}</td>
+                    <td>{{ issue.category }}</td>
+                    <td>
+                        <span class="status 
+                            {% if issue.status == 'Pending' %}pending
+                            {% elif issue.status == 'In Progress' %}in-progress
+                            {% elif issue.status == 'Resolved' %}resolved{% endif %}">
+                            {{ issue.status }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if issue.image %}
+                            <img src="{{ issue.image.url }}" alt="Issue Image" class="issue-image">
+                        {% else %}
+                            No Image
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </table>
+        {% else %}
+            <p>You have not reported any issues yet.</p>
+            <a href="{% url 'report_issue' %}">Report An Issue</a><br><br>
+        {% endif %}
+
+        <a href="{% url 'issue_list' %}" class="button">Back to Issue List</a>
+    </div>
+</body>
+</html>

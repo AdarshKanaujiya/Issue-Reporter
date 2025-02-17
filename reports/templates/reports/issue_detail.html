@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Issue Detail</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: auto;
+            padding: 20px;
+        }
+        h2 {
+            color: #fff;
+            text-align: center;
+            background-color: #003366; /* Dark blue background for title */
+            padding: 20px; /* Increased padding */
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-size: 32px; /* Increased font size */
+        }
+        p {
+            background: #fff;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        form {
+            background: #fff;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        button {
+            background-color: #003366; /* Dark blue color */
+            color: white;
+            padding: 15px; /* Increased padding */
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%; /* Full width */
+            font-size: 18px; /* Larger text size */
+        }
+        button:hover {
+            background-color: #002244; /* Darker blue on hover */
+        }
+        .comment-list {
+            list-style-type: none;
+            padding: 0;
+        }
+        .comment-list li {
+            margin: 5px 0;
+            background: #fff;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        #map {
+            height: 500px;
+            width: 100%;
+            margin-top: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            position: relative; /* Added for positioning the recenter button */
+        }
+        .recenter-button {
+            background-color: #fff;
+            border: 2px solid #003366;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            transition: background-color 0.3s;
+        }
+        .recenter-button:hover {
+            background-color: #e0e0e0;
+        }
+        .recenter-button img {
+            width: 20px;
+            height: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>{{ issue.title }}</h2>
+        <p>{{ issue.description }}</p>
+        <p><strong>Category:</strong> {{ issue.category }}</p>
+        <p><strong>Location:</strong> {{ issue.location }}</p>
+        <p><strong>Status:</strong> <span class="status-{{ issue.status|lower }}">{{ issue.status }}</span></p>
+        <!-- <p><strong>Votes:</strong> {{ issue.votes_count }}</p> -->
+
+        <!-- Comments Section -->
+        <h3>Comments</h3>
+        <ul class="comment-list">
+            {% for comment in issue.comments.all %}
+                <li><strong>{{ comment.user }}</strong>: {{ comment.text }} ({{ comment.created_at }})</li>
+            {% empty %}
+                <li>No comments yet.</li>
+            {% endfor %}
+        </ul>
+
+        <!-- Add Comment Form -->
+        <h3>Add a Comment</h3>
+        <form method="POST" action="{% url 'add_comment' issue.id %}">
+            {% csrf_token %}
+            <input type="text" name="username" placeholder="Enter your name" required>
+            <textarea name="text" placeholder="Write your comment..." required></textarea>
+            <button type="submit">Submit</button>
+        </form>
+
+        <!-- Back Button -->
+        <a href="{% url 'issue_list' %}" class="button">Back to Issue List</a>
+
+        <!-- Voting Section -->
+        <h3>Vote on this Issue</h3>
+        
+            <form method="POST" action="{% url 'vote_issue' issue.id %}">
+                {% csrf_token %}
+                <input type="hidden" name="vote_type" value="Upvote">
+                <button type="submit">👍 Upvote</button>
+            </form>
+            <form method="POST" action="{% url 'vote_issue' issue.id %}">
+                {% csrf_token %}
+                <input type="hidden" name="vote_type" value="Downvote">
+                <button type="submit">👎 Downvote</button>
+            </form>
+
+            <p><strong>Total Votes:</strong> {{ issue.votes_count }}</p>
+        
+
+        <!-- Map Section -->
+        <h3>Location on Map</h3>
+        <div id="map"></div>
+        <div class="recenter-button" id="recenter-button">
+            <img src="https://img.icons8.com/ios-filled/50/003366/center.png" alt="Recenter">
+        </div>
+    </div>
+
+    <!-- JavaScript for Voting -->
+    <script>
+        document.querySelectorAll('.vote-form').forEach(form => {
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                const formData = new FormData(this);
+
+                fetch(this.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': formData.get('csrfmiddlewaretoken')
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message || data.error);
+                    window.location.reload();
+                })
+                .catch(error => {
+                    alert("An error occurred. Please try again.");
+                });
+            });
+        });
+    </script>
+
+    <!-- JavaScript for Map -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        // Declare map in global scope
+        let map;
+
+        function initMap() {
+            map = L.map('map').setView([{{ issue.lat }}, {{ issue.lng }}], 13);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+    
+            L.marker([{{ issue.lat }}, {{ issue.lng }}]).addTo(map)
+                .bindPopup('<b>{{ issue.title }}</b><br>' + 
+                           'Status: {{ issue.status }}<br>' +  
+                           'Location: {{ issue.location }}<br>' +
+                           'Description: {{ issue.description }}').openPopup();
+    
+            // Animate map zoom to issue location
+            map.setView([{{ issue.lat }}, {{ issue.lng }}], 15, { animate: true });
+        }
+    
+        document.getElementById("recenter-button").addEventListener("click", function() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    const latitude = position.coords.latitude;
+                    const longitude = position.coords.longitude;
+                    
+                    map.setView([latitude, longitude], 15, { animate: true });
+                });
+            } else {
+                alert("Geolocation is not supported by this browser.");
+            }
+        });
+    
+        document.addEventListener("DOMContentLoaded", initMap);
+    </script>
+</body>
+</html>
