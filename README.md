@@ -10,6 +10,7 @@ A Django-based platform for reporting and tracking infrastructure issues in your
 - **Issue Status Tracking**: Monitor issue progress (Pending, In Progress, Resolved).
 - **Before & After Comparison**: View resolved issues with images.
 - **Admin Dashboard**: Manage reports and update statuses.
+- **git** : kya mast chizz hai.
 
 ---
 
