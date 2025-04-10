@@ -1,204 +1,858 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Report Issue</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Community Issue Reporter</title>
 
-    <!-- Include Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f9;
-            margin: 0;
-            padding: 20px;
-        }
-        .container {
-            max-width: 1200px;
-            margin: auto;
-            padding: 20px;
-        }
-        h2 {
-            color: #fff;
-            text-align: center;
-            background-color: #003366; /* Dark blue background for title */
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            font-size: 28px; /* Increased font size */
-        }
-        form {
-            background: #fff;
-            padding: 20px;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            margin: 10px 0;
-        }
-        input, select, textarea {
-            width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        button {
-            background-color: #003366; /* Dark blue color */
-            color: white;
-            padding: 15px; /* Increased padding */
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            width: 100%; /* Full width */
-            font-size: 18px; /* Larger text size */
-        }
-        button:hover {
-            background-color: #002244; /* Darker blue on hover */
-        }
-        #map {
-            height: 500px; /* Increased height for better visibility */
-            width: 100%;
-            margin-top: 20px;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
-        #error-message { color: red; display: none; margin-top: 10px; }
-    </style>
-        
+  <!-- External CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+  <!-- Base font -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <!-- Custom fonts with fallbacks -->
+  <link href="https://fonts.cdnfonts.com/css/adorn-serif" rel="stylesheet" onerror="this.remove()">
+  <link href="https://fonts.cdnfonts.com/css/adorn-condensed" rel="stylesheet" onerror="this.remove()">
+  <link href="https://fonts.cdnfonts.com/css/fairwater" rel="stylesheet" onerror="this.remove()">
+
+  <style>
+    :root {
+      /* Color System */
+      --primary-color: #1359b3;
+      --primary-light: #2075d8;
+      --primary-dark: #0a3b70;
+      --secondary-color: #10b981;
+      --accent-color: #0ea5e9;
+      --light-color: #f9fafb;
+      --dark-color: #1f2937;
+      --neutral-50: #f8fafc;
+      --neutral-100: #f1f5f9;
+      --neutral-200: #e2e8f0;
+      --neutral-300: #cbd5e1;
+      --neutral-400: #94a3b8;
+      --neutral-500: #64748b;
+      --neutral-600: #475569;
+      --neutral-700: #334155;
+      --neutral-800: #1e293b;
+      --neutral-900: #0f172a;
+      --success-color: #10b981;
+      --warning-color: #f59e0b;
+      --error-color: #ef4444;
+      --info-color: #3b82f6;
+      
+      /* Spacing System */
+      --space-1: 0.25rem;
+      --space-2: 0.5rem;
+      --space-3: 0.75rem;
+      --space-4: 1rem;
+      --space-5: 1.25rem;
+      --space-6: 1.5rem;
+      --space-8: 2rem;
+      --space-10: 2.5rem;
+      --space-12: 3rem;
+      --space-16: 4rem;
+      
+      /* UI Properties */
+      --border-radius-sm: 0.25rem;
+      --border-radius-md: 0.5rem;
+      --border-radius-lg: 1rem;
+      --border-radius-xl: 1.5rem;
+      --border-radius-full: 9999px;
+      
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+                   0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+                   0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+                   0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      
+      --glass-bg: rgba(255, 255, 255, 0.7);
+      --glass-border: 1px solid rgba(255, 255, 255, 0.2);
+      --glass-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
+      --glass-blur: blur(10px);
+      
+      --transition-fast: 0.15s ease;
+      --transition-normal: 0.3s ease;
+      --transition-slow: 0.5s ease;
+    }
+    
+    /* Reset & Base Styles */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      transition: all var(--transition-normal);
+    }
+    
+    html, body {
+      height: 100%;
+    }
+    
+    body {
+      font-family: 'Roboto', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #f5f7fa;
+      color: var(--neutral-800);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      line-height: 1.6;
+      font-size: 1rem;
+      font-weight: 400;
+      padding: 20px;
+      margin: 0;
+    }
+    
+    /* Typography */
+    h1, h2, h3, h4, h5, h6 {
+      line-height: 1.2;
+      letter-spacing: -0.01em;
+      font-weight: 600;
+    }
+    
+    h1 {
+      font-size: 2.25rem;
+    }
+    
+    h2 {
+      font-size: 1.875rem;
+    }
+    
+    /* Layout */
+    .container {
+      width: 100vw;
+      min-height: 100vh;
+      margin: 0;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      background: white;
+      position: relative;
+      box-shadow: var(--shadow-xl);
+      overflow-y: auto;
+    }
+    
+    /* Left Section (Blue) */
+    .left-section {
+      background: linear-gradient(135deg, var(--primary-dark), var(--primary-color));
+      padding: var(--space-8);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      position: relative;
+      overflow: hidden;
+      text-align: center;
+    }
+    
+    .left-section::after {
+      content: '';
+      position: absolute;
+      right: -50px;
+      top: 0;
+      height: 100%;
+      width: 100px;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 100 1000' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0,0 Q50,100 0,200 Q50,300 0,400 Q50,500 0,600 Q50,700 0,800 Q50,900 0,1000 L100,1000 L100,0 Z' fill='%23ffffff'/%3E%3C/svg%3E");
+      background-size: 100% 100%;
+      z-index: 2;
+    }
+    
+    /* Cloud effect at the bottom */
+    .cloud-effect {
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      width: 100%;
+      height: 100px;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 1200 120' preserveAspectRatio='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0,0 C150,90 350,0 500,80 C650,160 750,40 900,80 C1050,120 1150,40 1200,0 V120 H0 Z' fill='%23ffffff'/%3E%3C/svg%3E");
+      background-size: 100% 100%;
+      z-index: 1;
+    }
+    
+    .logo-container {
+      width: 100px;
+      height: 100px;
+      background-color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: var(--space-6);
+      box-shadow: var(--shadow-lg);
+      z-index: 2;
+    }
+    
+    .logo-icon {
+      font-size: 2.5rem;
+      color: var(--primary-color);
+    }
+    
+    /* Brand Name: All Caps, Fairwater font */
+    .brand-name {
+      font-family: 'Fairwater', sans-serif;
+      text-transform: uppercase;
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: var(--space-4);
+      z-index: 2;
+    }
+    
+    .brand-tagline {
+      font-size: 1rem;
+      opacity: 0.9;
+      max-width: 80%;
+      margin: 0 auto;
+      z-index: 2;
+    }
+    
+    /* Right Section (Form) */
+    .right-section {
+      padding: var(--space-8);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    
+    .form-header {
+      margin-bottom: var(--space-6);
+    }
+    
+    /* Form title uses Adorn Serif */
+    .form-title {
+      font-family: 'Adorn Serif', serif;
+      font-size: 1.75rem;
+      color: var(--neutral-800);
+      margin-bottom: var(--space-2);
+    }
+    
+    /* Form labels and inputs use Adorn Condensed */
+    .input-group label {
+      font-family: 'Adorn Condensed', sans-serif;
+      display: block;
+      margin-bottom: var(--space-2);
+      font-weight: 500;
+      color: var(--neutral-700);
+      font-size: 0.9rem;
+    }
+    
+    input, select, textarea {
+      font-family: 'Adorn Condensed', sans-serif;
+      width: 100%;
+      padding: var(--space-4);
+      border: 1px solid var(--neutral-200);
+      border-radius: var(--border-radius-md);
+      font-size: 1rem;
+      color: var(--neutral-800);
+      transition: all var(--transition-fast);
+    }
+    
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(19, 89, 179, 0.2);
+    }
+    
+    textarea {
+      min-height: 100px;
+      resize: vertical;
+    }
+    
+    select {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      background-size: 16px;
+      padding-right: 40px;
+    }
+    
+    /* File upload */
+    .file-input-container {
+      margin-bottom: var(--space-5);
+    }
+    
+    .file-input-label {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-2);
+      padding: var(--space-4);
+      border: 1px dashed var(--neutral-300);
+      border-radius: var(--border-radius-md);
+      cursor: pointer;
+      transition: all var(--transition-normal);
+    }
+    
+    .file-input-label:hover {
+      border-color: var(--primary-color);
+    }
+    
+    .file-input-label i {
+      font-size: 1.5rem;
+      color: var(--primary-color);
+    }
+    
+    #image {
+      position: absolute;
+      width: 0.1px;
+      height: 0.1px;
+      opacity: 0;
+      overflow: hidden;
+      z-index: -1;
+    }
+    
+    .file-name {
+      margin-top: var(--space-2);
+      font-size: 0.875rem;
+      color: var(--neutral-600);
+      display: none;
+    }
+    
+    /* Button */
+    .submit-button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-2);
+      width: 100%;
+      padding: var(--space-4);
+      background: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: var(--border-radius-md);
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: var(--shadow-md);
+      margin-top: var(--space-4);
+    }
+    
+    .submit-button:hover {
+      background: var(--primary-dark);
+    }
+    
+    .alt-button {
+      background: transparent;
+      border: 1px solid var(--neutral-300);
+      color: var(--neutral-600);
+      margin-top: var(--space-4);
+    }
+    
+    .alt-button:hover {
+      background: var(--neutral-100);
+      color: var(--neutral-800);
+    }
+    
+    /* Copy Token Button */
+    .copy-button {
+      background: var(--secondary-color);
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: var(--border-radius-md);
+      cursor: pointer;
+      margin-left: var(--space-2);
+      font-family: 'Adorn Condensed', sans-serif;
+    }
+    
+    .copy-button:hover {
+      background: var(--accent-color);
+    }
+    
+    /* Form checkbox */
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      margin-bottom: var(--space-5);
+    }
+    
+    .checkbox-group input {
+      width: auto;
+      margin-right: var(--space-2);
+    }
+    
+    .checkbox-group label {
+      margin-bottom: 0;
+      font-size: 0.85rem;
+    }
+    
+    .checkbox-group a {
+      color: var(--primary-color);
+      text-decoration: none;
+    }
+    
+    /* Messages */
+    .message {
+      padding: var(--space-4);
+      border-radius: var(--border-radius-md);
+      margin-top: var(--space-4);
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      opacity: 0;
+      transform: translateY(-10px);
+      animation: fadeIn 0.3s ease forwards;
+      display: none;
+      flex-wrap: wrap;
+    }
+    
+    .success-message {
+      background-color: rgba(16, 185, 129, 0.1);
+      color: var(--success-color);
+      border-left: 4px solid var(--success-color);
+    }
+    
+    .error-message {
+      background-color: rgba(239, 68, 68, 0.1);
+      color: var(--error-color);
+      border-left: 4px solid var(--error-color);
+    }
+    
+    /* Loading indicator */
+    .loading {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      display: none;
+    }
+    
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid rgba(19, 89, 179, 0.1);
+      border-radius: 50%;
+      border-top: 4px solid var(--primary-color);
+      animation: spin 1s linear infinite;
+    }
+    
+    /* Map section */
+    .map-container {
+      border-radius: var(--border-radius-md);
+      overflow: hidden;
+      height: 250px;
+      margin-bottom: var(--space-5);
+      box-shadow: var(--shadow-md);
+    }
+    
+    #map {
+      height: 100%;
+      width: 100%;
+    }
+    
+    .map-instructions {
+      font-size: 0.85rem;
+      color: var(--neutral-600);
+      margin-bottom: var(--space-4);
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+    
+    /* Animations */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 992px) {
+      .container {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr;
+      }
+      
+      .left-section {
+        padding: var(--space-6) var(--space-4);
+      }
+      
+      .left-section::after {
+        display: none;
+      }
+      
+      .cloud-effect {
+        display: none;
+      }
+      
+      .right-section {
+        padding: var(--space-6) var(--space-4);
+      }
+    }
+    
+    @media (max-width: 480px) {
+      body {
+        padding: 10px;
+      }
+      
+      .container {
+        border-radius: var(--border-radius-lg);
+      }
+      
+      .logo-container {
+        width: 80px;
+        height: 80px;
+      }
+      
+      .logo-icon {
+        font-size: 2rem;
+      }
+      
+      .brand-name {
+        font-size: 2rem;
+      }
+      
+      .right-section {
+        padding: var(--space-4);
+      }
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h2>Report Issue</h2>
-        <form id="issue-form" method="POST" action="{% url 'report_issue' %}" enctype="multipart/form-data">
-            {% csrf_token %}
-            <label for="title">Title:</label>
-            <input type="text" id="title" name="title" required><br><br>
-        
-            <label for="description">Description:</label>
-            <textarea id="description" name="description" required></textarea><br><br>
-        
-            <label for="category">Category:</label>
-            <select id="category" name="category" required>
-                <option value="Road">🚧 Road</option>
-                <option value="Electricity">⚡ Electricity</option>
-                <option value="Water">💧 Water</option>
-                <option value="Internet">📶 Internet</option>
-                <option value="Public Transport">🚌 Public Transport</option>
-                <option value="Waste Management">🗑️ Waste Management</option>
-                <option value="Other">🔧 Other</option>
-            </select><br><br>
-        
-            <label for="location">Location:</label>
-            <input type="text" id="location" name="location" placeholder="Enter address (Optional)" readonly><br><br>
-        
-            <label for="image">Image:</label>
-            <input type="file" id="image" name="image" accept="image/*"><br><br>
-        
-            <!-- Hidden inputs for lat/lng -->
-            <input type="hidden" id="lat" name="lat">
-            <input type="hidden" id="lng" name="lng">
-        
-            <!-- Map container -->
-            <div id="map"></div><br>
+  <div class="loading">
+    <div class="loading-spinner"></div>
+  </div>
 
-            <button type="submit">Submit Issue</button>
-        </form>
+  <div class="container animate_animated animate_fadeIn">
+    <!-- Left Section (Blue) -->
+    <div class="left-section">
+      <div class="logo-container">
+        <i class="fas fa-bullhorn logo-icon"></i>
+      </div>
+      <h1 class="brand-name">Community Reporter</h1>
+      <p class="brand-tagline">
+        Report and track issues in your community with ease.
+        We help connect citizens with local authorities.
+      </p>
+      <div class="cloud-effect"></div>
     </div>
 
-    <!-- Error message container -->
-    <div id="error-message"></div>
+    <!-- Right Section (Form) -->
+    <div class="right-section">
+      <div class="form-header">
+        <h2 class="form-title">Create your report</h2>
+      </div>
 
-    <!-- Include Leaflet JS -->
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-    <script>
-        let map, marker;
+      <form id="issue-form">
+        {% csrf_token %}
+        <div class="input-group">
+          <label for="title">Title</label>
+          <input type="text" id="title" name="title" required placeholder="Brief title of the issue" />
+        </div>
 
-        function initializeMap(latitude, longitude) {
-            map = L.map('map').setView([latitude, longitude], 13);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; OpenStreetMap contributors'
-            }).addTo(map);
+        <div class="input-group">
+          <label for="category">Category</label>
+          <select id="category" name="category" required>
+            <option value="" disabled selected>Select issue type</option>
+            <option value="Road">🚧 Road Issue</option>
+            <option value="Electricity">⚡ Electricity Problem</option>
+            <option value="Water">💧 Water Supply</option>
+            <option value="Internet">📶 Internet Connectivity</option>
+            <option value="Public Transport">🚌 Public Transport</option>
+            <option value="Waste Management">🗑 Waste Management</option>
+            <option value="Other">🔧 Other Issue</option>
+          </select>
+        </div>
 
-            marker = L.marker([latitude, longitude], { draggable: true }).addTo(map);
-            document.getElementById("lat").value = latitude;
-            document.getElementById("lng").value = longitude;
-            document.getElementById("location").value = latitude + ', ' + longitude; // Update location input
-
-            marker.on('dragend', function(event) {
-                const latlng = event.target.getLatLng();
-                document.getElementById("lat").value = latlng.lat;
-                document.getElementById("lng").value = latlng.lng;
-                document.getElementById("location").value = latlng.lat + ', ' + latlng.lng;
-            });
-
-            // Animate map zoom to user's location
-            map.setView([latitude, longitude], 15, { animate: true });
-        }
-
-        // Handle geolocation
+        <div class="map-container">
+          <div id="map"></div>
+        </div>
         
+        <div class="map-instructions">
+          <i class="fas fa-info-circle"></i>
+          <span>Click on the map to set location or drag the marker</span>
+        </div>
 
-        function getCurrentLocation() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    function(position) {
-                        initializeMap(position.coords.latitude, position.coords.longitude);
-                    },
-                    function(error) {
-                        console.error("Error getting location: ", error);
-                        alert("Location access denied. Please select your location manually.");
-                        initializeMap(19.0760, 72.8777); // Default to Mumbai
-                    }
-                );
-            } else {
-                alert("Geolocation is not supported by this browser.");
-                initializeMap(19.0760, 72.8777);
-            }
-        }
+        <div class="input-group">
+          <label for="location">Location</label>
+          <input type="text" id="location" name="location" placeholder="Click on map to set location" readonly />
+        </div>
 
-        document.getElementById("issue-form").addEventListener("submit", function (e) {
-    e.preventDefault();  // Prevent the form from submitting normally
+        <div class="input-group">
+          <label for="description">Description</label>
+          <textarea id="description" name="description" required placeholder="Please provide details about the issue"></textarea>
+        </div>
 
-    const errorMessageDiv = document.getElementById("error-message");
-    errorMessageDiv.style.display = "none"; // Hide error message initially
+        <div class="file-input-container">
+          <label for="image-label">Add Photo</label>
+          <label for="image" class="file-input-label">
+            <i class="fas fa-cloud-upload-alt"></i>
+            <span id="upload-text">Upload image or click to browse</span>
+          </label>
+          <input type="file" id="image" name="image" accept="image/*" />
+          <p class="file-name" id="file-name-display"></p>
+        </div>
 
-    const lat = document.getElementById("lat").value;
-    const lng = document.getElementById("lng").value;
+        <!-- Hidden inputs for lat/lng -->
+        <input type="hidden" id="lat" name="lat" />
+        <input type="hidden" id="lng" name="lng" />
 
-    if (!lat || !lng) {
-        errorMessageDiv.textContent = "Location is missing. Please enable location services or select manually.";
-        errorMessageDiv.style.display = "block";
-        return;
+        <div class="checkbox-group">
+          <input type="checkbox" id="terms" name="terms" required />
+          <label for="terms">I agree to the <a href="#">Terms &amp; Conditions</a></label>
+        </div>
+
+        <button type="submit" id="submit-btn" class="submit-button">
+          <i class="fas fa-paper-plane"></i>
+          Submit Report
+        </button>
+
+        <button type="button" class="submit-button alt-button" id="back-button">
+          <i class="fas fa-arrow-left"></i>
+          Back
+        </button>
+
+        </script>
+
+        <!-- Success and error message areas -->
+        <div id="success-message" class="message success-message"></div>
+        <div id="error-message" class="message error-message"></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- External JS - Load Leaflet first -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""></script>
+  
+  <script>
+    let map, marker;
+    const loadingScreen = document.querySelector('.loading');
+    const successMsg = document.getElementById('success-message');
+
+    // Show/hide loading spinner
+    function showLoading() {
+      loadingScreen.style.display = 'flex';
+      document.body.style.overflow = 'hidden';
+    }
+    function hideLoading() {
+      loadingScreen.style.display = 'none';
+      document.body.style.overflow = 'auto';
     }
 
-    const formData = new FormData(document.getElementById("issue-form"));
-
-    fetch("{% url 'report_issue' %}", {
-        method: 'POST',
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.message) {
-            alert("Issue reported successfully! Your token is: " + data.token); // Show token in alert
-            // Redirect to the issue detail page using the correct URL pattern
-            window.location.href = `/issues/${data.issue_id}/`;
-        } else if (data.error) {
-            errorMessageDiv.textContent = data.error; // Display specific error message
-            errorMessageDiv.style.display = "block";
-        } else {
-            errorMessageDiv.textContent = "Error reporting issue. Please try again.";
-            errorMessageDiv.style.display = "block";
-        }
-    })
-    .catch(error => {
-        errorMessageDiv.textContent = "An error occurred. Please try again.";
-        errorMessageDiv.style.display = "block";
-        console.error("Error:", error);
+    // File input handling
+    document.getElementById('image').addEventListener('change', function(e) {
+      const fileName = e.target.files[0] ? e.target.files[0].name : 'No file selected';
+      const fileNameDisplay = document.getElementById('file-name-display');
+      const uploadText = document.getElementById('upload-text');
+      
+      if (e.target.files[0]) {
+        fileNameDisplay.textContent = fileName;
+        fileNameDisplay.style.display = 'block';
+        uploadText.textContent = '✓ Image selected';
+        document.querySelector('.file-input-label').style.borderColor = 'var(--success-color)';
+        
+        // Image preview
+        const reader = new FileReader();
+        reader.onload = function(event) {
+          const imgPreview = document.createElement('div');
+          imgPreview.style.width = '100%';
+          imgPreview.style.height = '120px';
+          //imgPreview.style.backgroundImage = url(${event.target.result});
+          imgPreview.style.backgroundSize = 'cover';
+          imgPreview.style.backgroundPosition = 'center';
+          imgPreview.style.borderRadius = 'var(--border-radius-md)';
+          imgPreview.style.marginTop = 'var(--space-4)';
+          
+          const oldPreview = document.querySelector('.img-preview');
+          if (oldPreview) oldPreview.remove();
+          
+          imgPreview.className = 'img-preview';
+          document.querySelector('.file-input-container').appendChild(imgPreview);
+        };
+        reader.readAsDataURL(e.target.files[0]);
+      } else {
+        fileNameDisplay.style.display = 'none';
+        uploadText.textContent = 'Upload image or click to browse';
+        document.querySelector('.file-input-label').style.borderColor = 'var(--neutral-300)';
+        const oldPreview = document.querySelector('.img-preview');
+        if (oldPreview) oldPreview.remove();
+      }
     });
-});
 
-        window.onload = getCurrentLocation;
-    </script>
+    // Drag and drop functionality
+    const dropArea = document.querySelector('.file-input-label');
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+      dropArea.addEventListener(eventName, e => { e.preventDefault(); e.stopPropagation(); }, false);
+    });
+    ['dragenter', 'dragover'].forEach(eventName => {
+      dropArea.addEventListener(eventName, () => {
+        dropArea.style.borderColor = 'var(--primary-color)';
+        dropArea.style.backgroundColor = 'rgba(255, 255, 255, 0.9)';
+      }, false);
+    });
+    ['dragleave', 'drop'].forEach(eventName => {
+      dropArea.addEventListener(eventName, () => {
+        dropArea.style.borderColor = 'var(--neutral-300)';
+        dropArea.style.backgroundColor = 'transparent';
+      }, false);
+    });
+    dropArea.addEventListener('drop', e => {
+      const dt = e.dataTransfer;
+      const files = dt.files;
+      document.getElementById('image').files = files;
+      document.getElementById('image').dispatchEvent(new Event('change', { bubbles: true }));
+    }, false);
+
+    function initializeMap(latitude, longitude) {
+      map = L.map('map', { zoomControl: false }).setView([latitude, longitude], 14);
+      L.control.zoom({ position: 'bottomright' }).addTo(map);
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        maxZoom: 20,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      }).addTo(map);
+
+      // Custom marker
+      const customIcon = L.divIcon({
+        className: 'custom-map-marker',
+        html: `<div style="position: relative;">
+                  <div style="width: 20px; height: 20px; background-color: var(--primary-color); border-radius: 50%; border: 3px solid white; box-shadow: 0 0 0 2px var(--primary-light), 0 0 10px rgba(0,0,0,0.4);" class="marker-dot"></div>
+                </div>`,
+        iconSize: [20, 20],
+        iconAnchor: [10, 10]
+      });
+
+      marker = L.marker([latitude, longitude], { draggable: true, icon: customIcon }).addTo(map);
+      document.getElementById("lat").value = latitude;
+      document.getElementById("lng").value = longitude;
+      document.getElementById("location").value = latitude.toFixed(6) + ', ' + longitude.toFixed(6);
+
+      const style = document.createElement('style');
+      style.textContent = `
+        @keyframes pulseDot {
+          0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(19, 89, 179, 0.7); }
+          70% { transform: scale(1.2); box-shadow: 0 0 0 10px rgba(19, 89, 179, 0); }
+          100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(19, 89, 179, 0); }
+        }
+        .marker-dot { animation: pulseDot 2s infinite; }
+      `;
+      document.head.appendChild(style);
+
+      marker.on('dragend', function(event) {
+        const latlng = event.target.getLatLng();
+        document.getElementById("lat").value = latlng.lat;
+        document.getElementById("lng").value = latlng.lng;
+        document.getElementById("location").value = latlng.lat.toFixed(6) + ', ' + latlng.lng.toFixed(6);
+      });
+      
+      map.on('click', function(e) {
+        marker.setLatLng(e.latlng);
+        document.getElementById("lat").value = e.latlng.lat;
+        document.getElementById("lng").value = e.latlng.lng;
+        document.getElementById("location").value = e.latlng.lat.toFixed(6) + ', ' + e.latlng.lng.toFixed(6);
+      });
+    }
+
+    // Initialize map with default coordinates if geolocation is not available
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(position => {
+        initializeMap(position.coords.latitude, position.coords.longitude);
+      }, () => {
+        initializeMap(40.7128, -74.0060); // Default to New York City
+      });
+    } else {
+      initializeMap(40.7128, -74.0060);
+    }
+
+    // Back button functionality
+    document.getElementById('back-button').addEventListener('click', function() {
+      window.location.href = "{% url 'issue_list' %}";
+    });
+    
+    // Form submission handling - enhanced version
+    const form = document.getElementById('issue-form');
+    form.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      showLoading();
+
+      try {
+        const formData = new FormData(form);
+        const response = await fetch("{% url 'report_issue' %}", {
+          method: "POST",
+          body: formData,
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest' // Identify as AJAX request
+          }
+        });
+
+        // Log raw response for debugging
+        const responseText = await response.text();
+        console.log('Raw response:', responseText);
+        
+        try {
+          const data = JSON.parse(responseText);
+          hideLoading();
+
+          if (data.token) {
+            successMsg.style.display = 'flex';
+            successMsg.innerHTML = `
+              <span>Report submitted successfully! Token: <strong>${data.token}</strong></span>
+              <button id="copy-button" class="copy-button">
+                <i class="fas fa-copy"></i> Copy
+              </button>
+              <button id="continue-button" class="copy-button" style="background-color: var(--primary-color); margin-left: 10px;">
+                <i class="fas fa-arrow-right"></i> Continue
+              </button>
+            `;
+            
+            // Disable form after successful submission
+            document.getElementById('issue-form').querySelectorAll('input, textarea, select').forEach(el => {
+              el.disabled = true;
+            });
+            // Only disable the submit button
+            document.getElementById('submit-btn').disabled = true;
+            // But keep the back button enabled
+            document.getElementById('back-button').disabled = false;
+            
+            // Set up copy button
+            document.getElementById('copy-button').addEventListener('click', function(e) {
+              e.preventDefault();
+              navigator.clipboard.writeText(data.token).then(() => {
+                this.textContent = 'Copied!';
+                setTimeout(() => this.innerHTML = '<i class="fas fa-copy"></i> Copy', 2000);
+              });
+            });
+            
+            // Set up continue button
+            document.getElementById('continue-button').addEventListener('click', function() {
+              window.location.href = "{% url 'issue_list' %}";
+            });
+          } else {
+            document.getElementById('error-message').style.display = 'flex';
+            document.getElementById('error-message').textContent = data.error || 'Submission failed. Please try again.';
+          }
+        } catch (jsonError) {
+          hideLoading();
+          document.getElementById('error-message').style.display = 'flex';
+          document.getElementById('error-message').textContent = 'Invalid server response. Please check console for details.';
+          console.error('JSON parse error:', jsonError, 'Response text:', responseText);
+        }
+      } catch (error) {
+        hideLoading();
+        document.getElementById('error-message').style.display = 'flex';
+        document.getElementById('error-message').textContent = 'Error: ' + error.message;
+        console.error('Submission error:', error);
+      }
+    });
+
+      
+  </script>
 </body>
 </html>

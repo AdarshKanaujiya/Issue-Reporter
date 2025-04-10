@@ -5,76 +5,293 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Issue Detail</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f9;
-            margin: 0;
-            padding: 20px;
+        :root {
+            --primary: #3a86ff;
+            --primary-dark: #2667d4;
+            --secondary: #8338ec;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --success: #38b000;
+            --danger: #ff006e;
+            --warning: #ffbe0b;
+            --info: #3a86ff;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --border-radius: 12px;
         }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            color: var(--dark);
+            line-height: 1.6;
+        }
+
         .container {
             max-width: 1200px;
-            margin: auto;
-            padding: 20px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
         }
+
         h2 {
-            color: #fff;
-            text-align: center;
-            background-color: #003366; /* Dark blue background for title */
-            padding: 20px; /* Increased padding */
-            border-radius: 5px;
-            margin-bottom: 20px;
-            font-size: 32px; /* Increased font size */
+            color: var(--light);
+            text-align: left;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            margin-bottom: 2rem;
+            font-size: 2.2rem;
+            font-weight: 700;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
         }
-        p {
-            background: #fff;
-            padding: 15px;
-            border-radius: 5px;
-            margin: 10px 0;
+
+        h2::after {
+            content: '';
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            top: -100px;
+            right: -50px;
         }
-        form {
-            background: #fff;
-            padding: 15px;
-            border-radius: 5px;
-            margin: 10px 0;
+
+        h3 {
+            color: var(--primary);
+            margin: 1.5rem 0 1rem;
+            font-weight: 600;
+            position: relative;
+            padding-left: 1rem;
         }
-        button {
-            background-color: #003366; /* Dark blue color */
-            color: white;
-            padding: 15px; /* Increased padding */
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            width: 100%; /* Full width */
-            font-size: 18px; /* Larger text size */
+
+        h3::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 4px;
+            background: var(--primary);
+            border-radius: 2px;
         }
-        button:hover {
-            background-color: #002244; /* Darker blue on hover */
+
+        .card {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: var(--shadow);
+            transition: transform 0.3s ease;
         }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .info-item {
+            padding: 1.25rem;
+            border-radius: var(--border-radius);
+            background: white;
+            box-shadow: var(--shadow);
+        }
+
+        .info-item strong {
+            display: block;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .status-open {
+            color: var(--success);
+            font-weight: bold;
+        }
+
+        .status-closed {
+            color: var(--danger);
+            font-weight: bold;
+        }
+
+        .status-pending {
+            color: var(--warning);
+            font-weight: bold;
+        }
+
         .comment-list {
             list-style-type: none;
             padding: 0;
         }
+
         .comment-list li {
-            margin: 5px 0;
-            background: #fff;
-            padding: 10px;
-            border-radius: 5px;
+            margin: 1rem 0;
+            background: white;
+            padding: 1.25rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            position: relative;
+            border-left: 4px solid var(--primary);
         }
+
+        .comment-user {
+            font-weight: bold;
+            color: var(--primary-dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .comment-date {
+            font-size: 0.85rem;
+            color: #888;
+            position: absolute;
+            top: 1.25rem;
+            right: 1.25rem;
+        }
+
+        form {
+            background: white;
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            margin: 1.5rem 0;
+            box-shadow: var(--shadow);
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            margin-bottom: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(58, 134, 255, 0.2);
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        button {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 80%);
+            color: white;
+            padding: 1rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .button {
+            display: inline-block;
+            text-decoration: none;
+            background-color: var(--light);
+            color: var(--dark);
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            margin: 1rem 0;
+            transition: all 0.3s ease;
+            border: 2px solid #ddd;
+        }
+
+        .button:hover {
+            background-color: #eee;
+            transform: translateY(-2px);
+        }
+
+        .voting-section {
+            display: flex;
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .vote-btn {
+            flex: 1;
+            padding: 1rem;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .upvote {
+            background: linear-gradient(135deg, #38b000 0%, #4cc417 100%);
+        }
+
+        .downvote {
+            background: linear-gradient(135deg, #ff006e 0%, #ff5555 100%);
+        }
+
+        .vote-count {
+            background: white;
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            color: var(--dark);
+        }
+
         #map {
             height: 500px;
             width: 100%;
-            margin-top: 20px;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-            position: relative; /* Added for positioning the recenter button */
+            margin-top: 1.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
         }
+
         .recenter-button {
-            background-color: #fff;
-            border: 2px solid #003366;
+            background-color: white;
+            border: none;
             border-radius: 50%;
-            width: 40px;
-            height: 40px;
+            width: 48px;
+            height: 48px;
             position: absolute;
             bottom: 20px;
             right: 20px;
@@ -82,32 +299,63 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-            transition: background-color 0.3s;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            transition: all 0.3s ease;
         }
+
         .recenter-button:hover {
-            background-color: #e0e0e0;
+            transform: scale(1.1);
+            background-color: var(--light);
         }
-        .recenter-button img {
-            width: 20px;
-            height: 20px;
+
+        @media (max-width: 768px) {
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .voting-section {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h2>{{ issue.title }}</h2>
-        <p>{{ issue.description }}</p>
-        <p><strong>Category:</strong> {{ issue.category }}</p>
-        <p><strong>Location:</strong> {{ issue.location }}</p>
-        <p><strong>Status:</strong> <span class="status-{{ issue.status|lower }}">{{ issue.status }}</span></p>
-        <!-- <p><strong>Votes:</strong> {{ issue.votes_count }}</p> -->
+
+        <div class="card">
+            <p>{{ issue.description }}</p>
+        </div>
+
+        <div class="info-grid">
+            <div class="info-item">
+                <strong>Category</strong>
+                <span>{{ issue.category }}</span>
+            </div>
+            <div class="info-item">
+                <strong>Location</strong>
+                <span>{{ issue.location }}</span>
+            </div>
+            <div class="info-item">
+                <strong>Status</strong>
+                <span class="status-{{ issue.status|lower }}">{{ issue.status }}</span>
+            </div>
+            <div class="info-item">
+                <strong>Votes</strong>
+                <span>{{ issue.votes_count }}</span>
+            </div>
+        </div>
 
         <!-- Comments Section -->
         <h3>Comments</h3>
         <ul class="comment-list">
             {% for comment in issue.comments.all %}
-                <li><strong>{{ comment.user }}</strong>: {{ comment.text }} ({{ comment.created_at }})</li>
+                <li>
+                    <div class="comment-user">{{ comment.user }}</div>
+                    <div class="comment-text">{{ comment.text }}</div>
+                    <div class="comment-date">{{ comment.created_at }}</div>
+                </li>
             {% empty %}
                 <li>No comments yet.</li>
             {% endfor %}
@@ -119,34 +367,43 @@
             {% csrf_token %}
             <input type="text" name="username" placeholder="Enter your name" required>
             <textarea name="text" placeholder="Write your comment..." required></textarea>
-            <button type="submit">Submit</button>
+            <button type="submit">
+                <i class="fas fa-paper-plane"></i> Submit Comment
+            </button>
         </form>
-
-        <!-- Back Button -->
-        <a href="{% url 'issue_list' %}" class="button">Back to Issue List</a>
 
         <!-- Voting Section -->
         <h3>Vote on this Issue</h3>
-        
-            <form method="POST" action="{% url 'vote_issue' issue.id %}">
+        <div class="voting-section">
+            <form method="POST" action="{% url 'vote_issue' issue.id %}" class="vote-form">
                 {% csrf_token %}
                 <input type="hidden" name="vote_type" value="Upvote">
-                <button type="submit">👍 Upvote</button>
+                <button type="submit" class="vote-btn upvote">
+                    <i class="fas fa-thumbs-up"></i> Upvote
+                </button>
             </form>
-            <form method="POST" action="{% url 'vote_issue' issue.id %}">
+            <form method="POST" action="{% url 'vote_issue' issue.id %}" class="vote-form">
                 {% csrf_token %}
                 <input type="hidden" name="vote_type" value="Downvote">
-                <button type="submit">👎 Downvote</button>
+                <button type="submit" class="vote-btn downvote">
+                    <i class="fas fa-thumbs-down"></i> Downvote
+                </button>
             </form>
+            <div class="vote-count">
+                <i class="fas fa-poll"></i> {{ issue.votes_count }} votes
+            </div>
+        </div>
 
-            <p><strong>Total Votes:</strong> {{ issue.votes_count }}</p>
-        
+        <!-- Back Button -->
+        <a href="{% url 'view_issues' %}" class="button">
+            <i class="fas fa-arrow-left"></i> Back to Issue List
+        </a>
 
         <!-- Map Section -->
         <h3>Location on Map</h3>
         <div id="map"></div>
         <div class="recenter-button" id="recenter-button">
-            <img src="https://img.icons8.com/ios-filled/50/003366/center.png" alt="Recenter">
+            <i class="fas fa-location-crosshairs"></i>
         </div>
     </div>
 

@@ -4,102 +4,404 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Search Issue by Token</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f9;
+        :root {
+            --primary: #4f46e5;
+            --primary-light: #6366f1;
+            --primary-dark: #4338ca;
+            --bg: #f8fafc;
+            --white: #ffffff;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-600: #4b5563;
+            --gray-800: #1f2937;
+            --red: #ef4444;
+            --green: #10b981;
+            --yellow: #f59e0b;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
+            --shadow: 0 10px 30px rgba(0,0,0,0.08);
+            --shadow-lg: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        * {
             margin: 0;
-            padding: 20px;
+            padding: 0;
+            box-sizing: border-box;
         }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--gray-800);
+            padding: 24px;
+            line-height: 1.6;
+        }
+
         header {
-            background-color: #4CAF50;
-            color: white;
-            padding: 15px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: var(--white);
             text-align: center;
+            padding: 40px 20px;
+            border-radius: 16px;
+            margin-bottom: 40px;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
         }
+
+        header::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23ffffff' fill-opacity='0.05' fill-rule='evenodd'/%3E%3C/svg%3E");
+            opacity: 0.7;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            position: relative;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .search-form-container {
+            max-width: 550px;
+            margin: 0 auto 30px;
+        }
+
         form {
-            max-width: 400px;
-            margin: 20px auto;
-            padding: 20px;
-            background-color: #fff;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            border-radius: 8px;
+            background-color: var(--white);
+            padding: 32px;
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            border: 1px solid var(--gray-200);
         }
+
+        form:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
         label {
-            font-weight: bold;
-            margin-bottom: 8px;
+            font-weight: 600;
+            margin-bottom: 10px;
             display: block;
+            color: var(--gray-800);
+            font-size: 1.05rem;
         }
+
         input[type="text"] {
             width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ccc;
-            border-radius: 4px;
+            padding: 14px 16px;
+            border: 2px solid var(--gray-300);
+            border-radius: 10px;
+            margin-top: 8px;
+            margin-bottom: 24px;
+            font-size: 1rem;
+            transition: all 0.2s ease;
         }
+
+        input[type="text"]:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+        }
+
         button {
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
             width: 100%;
+            padding: 14px;
+            background-color: var(--primary);
+            color: var(--white);
+            font-weight: 600;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
+
         button:hover {
-            background-color: #45a049;
+            background-color: var(--primary-light);
+            transform: translateY(-2px);
         }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .back-button {
+            background-color: transparent;
+            color: var(--gray-600);
+            border: 1px solid var(--gray-300);
+            max-width: 150px;
+            margin: 24px auto;
+            padding: 14px;
+            font-weight: 600;
+            font-size: 1rem;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 10px;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow-sm);
+            cursor: pointer;
+        }
+        
+        .back-button:hover {
+            background-color: var(--gray-100);
+            transform: translateY(-2px);
+        }
+        
+
         .results {
-            margin-top: 20px;
-            background-color: #fff;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin: 40px auto;
+            max-width: 800px;
+            background-color: var(--white);
+            padding: 32px;
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--gray-200);
         }
-        .results ul {
+
+        .results h2 {
+            margin-bottom: 24px;
+            color: var(--gray-800);
+            font-weight: 700;
+            font-size: 1.5rem;
+            padding-bottom: 16px;
+            border-bottom: 2px solid var(--gray-200);
+        }
+
+        .issue-list {
             list-style-type: none;
-            padding: 0;
+            padding-left: 0;
         }
-        .results li {
-            margin-bottom: 15px;
+
+        .issue-item {
+            margin-bottom: 32px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--gray-200);
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
         }
-        .results li strong {
-            color: #333;
+
+        .issue-item:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
         }
+
+        .issue-content {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .issue-item .label {
+            font-weight: 600;
+            color: var(--gray-600);
+            display: inline-block;
+            min-width: 100px;
+        }
+
+        .issue-item .value {
+            font-weight: 500;
+            color: var(--gray-800);
+        }
+
+        .issue-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--primary-dark);
+            margin-bottom: 8px;
+        }
+
+        .issue-token {
+            background-color: var(--gray-100);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            color: var(--gray-600);
+            display: inline-block;
+            margin-bottom: 16px;
+        }
+
+        .issue-description {
+            line-height: 1.7;
+            margin-bottom: 16px;
+        }
+
+        .issue-status {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .status-open {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--green);
+        }
+
+        .status-pending {
+            background-color: rgba(245, 158, 11, 0.1);
+            color: var(--yellow);
+        }
+
+        .status-closed {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--red);
+        }
+
+        .issue-image-container {
+            margin-top: 20px;
+        }
+
+        .issue-image {
+            width: 100%;
+            max-height: 300px;
+            object-fit: cover;
+            border-radius: 12px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--gray-200);
+        }
+
         .no-results {
-            color: #ff0000;
+            text-align: center;
+            margin-top: 40px;
+            padding: 24px;
+            background-color: rgba(239, 68, 68, 0.05);
+            border: 1px solid rgba(239, 68, 68, 0.1);
+            border-radius: 12px;
+            color: var(--red);
+            font-weight: 500;
+        }
+
+        @media (min-width: 768px) {
+            .issue-item {
+                grid-template-columns: 2fr 1fr;
+                align-items: start;
+            }
+        }
+
+        @media (max-width: 767px) {
+            body {
+                padding: 16px;
+            }
+
+            header {
+                padding: 30px 15px;
+                margin-bottom: 30px;
+            }
+
+            header h1 {
+                font-size: 1.8rem;
+            }
+
+            form, .results {
+                padding: 24px;
+            }
+
+            .issue-image {
+                max-height: 200px;
+            }
         }
     </style>
 </head>
 <body>
+    <div class="container">
+        <header>
+            <h1>Search Issue by Token</h1>
+        </header>
 
-    <header>
-        <h1>Search Issue by Token</h1>
-    </header>
-
-    <form method="GET" action="{% url 'search_issue' %}">
-        <label for="token">Enter Token:</label>
-        <input type="text" id="token" name="token" required placeholder="Enter the token here">
-        <button type="submit">Search</button>
-    </form>
-
-    {% if issues %}
-        <div class="results">
-            <h2>Search Results:</h2>
-            <ul>
-                {% for issue in issues %}
-                    <li>
-                        <strong>Title:</strong> {{ issue.title }}<br>
-                        <strong>Token:</strong> {{ issue.token }}<br>
-                        <strong>Description:</strong> {{ issue.description }}<br>
-                        <strong>Status:</strong> {{ issue.status }}<br>
-                    </li>
-                {% endfor %}
-            </ul>
+        <div class="search-form-container">
+            <form method="GET" action="{% url 'search_issue' %}">    
+                <label for="token">Enter Token</label>
+                <input type="text" id="token" name="token" required placeholder="e.g. ABC123XYZ">
+                <button type="submit">
+                    <i class="fas fa-search"></i>
+                    Search
+                </button>
+            </form>
         </div>
-    {% elif request.GET.token %}
-        <p class="no-results">No issues found for this token. Please check and try again.</p>
-    {% endif %}
 
+        <div style="text-align: center;">
+            <a href="{% url 'issue_list' %}" class="back-button">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+        </div>
+        
+
+        {% if issues %}
+            <div class="results">
+                <h2>Search Results</h2>
+                <ul class="issue-list">
+                    {% for issue in issues %}
+                        <li class="issue-item">
+                            <div class="issue-content">
+                                <h3 class="issue-title">{{ issue.title }}</h3>
+                                <div class="issue-token">Token: {{ issue.token }}</div>
+                                
+                                <div class="issue-description">
+                                    <div class="label">Description:</div>
+                                    <div class="value">{{ issue.description }}</div>
+                                </div>
+                                
+                                <div>
+                                    <span class="label">Status:</span>
+                                    {% if issue.status == 'Open' %}
+                                        <span class="issue-status status-open">
+                                            <i class="fas fa-circle-check mr-1"></i> {{ issue.status }}
+                                        </span>
+                                    {% elif issue.status == 'Pending' %}
+                                        <span class="issue-status status-pending">
+                                            <i class="fas fa-clock mr-1"></i> {{ issue.status }}
+                                        </span>
+                                    {% else %}
+                                        <span class="issue-status status-closed">
+                                            <i class="fas fa-circle-xmark mr-1"></i> {{ issue.status }}
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            {% if issue.image %}
+                            <div class="issue-image-container">
+                                <img src="{{ issue.image.url }}" alt="Issue image" class="issue-image">
+                            </div>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% elif request.GET.token %}
+            <p class="no-results">
+                <i class="fas fa-exclamation-circle"></i> 
+                No issues found for this token. Please double-check and try again.
+            </p>
+        {% endif %}
+    </div>
 </body>
 </html>

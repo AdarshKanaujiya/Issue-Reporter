@@ -1,64 +1,161 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>View Reported Issues</title>
+    <!-- Font imports -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
     <style>
-        /* General Styles */
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f9;
-            margin: 0;
-            padding: 0;
+        @font-face {
+            font-family: 'Fairwater';
+            src: url('https://cdnjs.cloudflare.com/ajax/libs/webfont/1.6.28/webfontloader.js');
+            font-weight: normal;
+            font-style: normal;
         }
 
-        /* Container */
+        /* General Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Fairwater', 'Adorn Serif', 'Adorn Condensed', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            background-color: #f5f7fa;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 35%;
+            background-color: #003366;
+            color: white;
+            position: relative;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            clip-path: polygon(0 0, 100% 0, 92% 100%, 0 100%);
+        }
+
+        .logo-container {
+            width: 120px;
+            height: 120px;
+            background-color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 40px;
+        }
+
+        .logo {
+            color: #003366;
+            font-size: 48px;
+        }
+
+        .sidebar h1 {
+            font-family: 'Adorn Condensed', sans-serif;
+            font-size: 48px;
+            margin-bottom: 20px;
+            letter-spacing: 1px;
+        }
+
+        /* Main Content */
+        .main {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+        }
+
         .container {
-            max-width: 900px;
-            margin: 50px auto;
-            padding: 20px;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-            text-align: center;
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
         }
 
         /* Headings */
         h2 {
+            font-family: 'Adorn Serif', serif;
             color: #003366;
-            margin-bottom: 20px;
+            margin-bottom: 30px;
+            font-size: 36px;
+            letter-spacing: 1px;
         }
 
         /* Table */
         table {
             width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-top: 30px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
 
         th, td {
-            padding: 12px;
-            border: 1px solid #ddd;
+            padding: 16px;
             text-align: left;
+            border: none;
+            transition: all 0.3s ease;
         }
 
         th {
+            font-family: 'Adorn Condensed', sans-serif;
             background-color: #003366;
             color: white;
+            font-weight: 600;
+            letter-spacing: 1px;
+            font-size: 18px;
+        }
+
+        tr:nth-child(even) {
+            background-color: rgba(240, 242, 245, 0.7);
+        }
+
+        tr:nth-child(odd) {
+            background-color: rgba(255, 255, 255, 0.7);
+        }
+
+        tr:hover {
+            background: rgba(230, 243, 255, 0.9);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        td {
+            font-family: 'Fairwater', sans-serif;
+            font-size: 16px;
+            border-bottom: 1px solid rgba(0, 51, 102, 0.1);
         }
 
         /* Status Styling */
         .status {
             font-weight: bold;
-            padding: 5px 10px;
-            border-radius: 5px;
+            padding: 8px 12px;
+            border-radius: 20px;
+            display: inline-block;
+            text-transform: uppercase;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .status:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.15);
         }
 
         .pending {
             background-color: #ffcc00;
-            color: black;
+            color: #333;
         }
 
         .in-progress {
@@ -75,7 +172,13 @@
         .issue-image {
             max-width: 100px;
             height: auto;
-            border-radius: 5px;
+            border-radius: 8px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .issue-image:hover {
+            transform: scale(1.1);
         }
 
         /* Before-After Image Styling */
@@ -88,74 +191,132 @@
         .image-container img {
             max-width: 100px;
             height: auto;
-            border-radius: 5px;
+            border-radius: 8px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .image-container img:hover {
+            transform: scale(1.1);
         }
 
         /* Back Link */
-        .back-link {
+        .button {
             display: inline-block;
-            margin-top: 20px;
+            margin-top: 30px;
             text-decoration: none;
             font-weight: bold;
-            color: #003366;
+            color: white;
+            background-color: #003366;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-family: 'Adorn Condensed', sans-serif;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(0, 51, 102, 0.3);
+            transition: all 0.3s ease;
         }
 
-        .back-link:hover {
-            text-decoration: underline;
+        .button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 51, 102, 0.4);
+            background-color: #004080;
+        }
+
+        /* Empty State */
+        p {
+            font-family: 'Fairwater', sans-serif;
+            font-size: 18px;
+            color: #555;
+            margin: 30px 0;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            body {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                clip-path: polygon(0 0, 100% 0, 100% 92%, 0 100%);
+                padding: 30px;
+                min-height: 300px;
+            }
+            
+            .main {
+                padding: 30px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2>All Reported Issues</h2>
-
-        {% if issues %}
-            <table>
-                <tr>
-                    <th>Title</th>
-                    <th>Category</th>
-                    <th>Status</th>
-                    <th>Image</th>
-                    <th>Before & After</th>
-                </tr>
-                {% for issue in issues %}
-                <tr>
-                    <td>{{ issue.title }}</td>
-                    <td>{{ issue.category }}</td>
-                    <td>
-                        <span class="status 
-                            {% if issue.status == 'Pending' %}pending
-                            {% elif issue.status == 'In Progress' %}in-progress
-                            {% elif issue.status == 'Resolved' %}resolved{% endif %}">
-                            {{ issue.status }}
-                        </span>
-                    </td>
-                    <td>
-                        {% if issue.image %}
-                            <img src="{{ issue.image.url }}" alt="Issue Image" class="issue-image">
-                        {% else %}
-                            No Image
-                        {% endif %}
-                    </td>
-                    <td>
-                        {% if issue.status == 'Resolved' and issue.before_image and issue.after_image %}
-                            <div class="image-container">
-                                <img src="{{ issue.before_image.url }}" alt="Before">
-                                <img src="{{ issue.after_image.url }}" alt="After">
-                            </div>
-                        {% else %}
-                            N/A
-                        {% endif %}
-                    </td>
-                </tr>
-                {% endfor %}
-            </table>
-        {% else %}
-            <p>No reported issues available.</p>
-        {% endif %}
-
-        <a href="{% url 'issue_list' %}" class="button">Back to Issue List</a>
-        
+    <div class="sidebar">
+        <div class="logo-container">
+            <i class="fas fa-bullhorn logo"></i>
+        </div>
+        <h1>COMMUNITY REPORTER</h1>
+        <p>Report and track issues in your community with ease. We help keep your neighborhood safe and beautiful.</p>
     </div>
+    
+    <div class="main">
+        <div class="container">
+            <h2>All Reported Issues</h2>
+
+            {% if issues %}
+                <table>
+                    <tr>
+                        <th>Title</th>
+                        <th>Category</th>
+                        <th>Status</th>
+                        <th>Image</th>
+                        <th>Before & After</th>
+                    </tr>
+                    {% for issue in issues %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'issue_detail' issue.id %}" style="color: #003366; font-weight: bold; text-decoration: none;">
+                              {{ issue.title }}
+                            </a>
+                          </td>
+                          
+                        <td>{{ issue.category }}</td>
+                        <td>
+                            <span class="status 
+                                {% if issue.status == 'Pending' %}pending
+                                {% elif issue.status == 'In Progress' %}in-progress
+                                {% elif issue.status == 'Resolved' %}resolved{% endif %}">
+                                {{ issue.status }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if issue.image %}
+                                <img src="{{ issue.image.url }}" alt="Issue Image" class="issue-image">
+                            {% else %}
+                                No Image
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if issue.status == 'Resolved' and issue.before_image and issue.after_image %}
+                                <div class="image-container">
+                                    <img src="{{ issue.before_image.url }}" alt="Before">
+                                    <img src="{{ issue.after_image.url }}" alt="After">
+                                </div>
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            {% else %}
+                <p>No reported issues available.</p>
+            {% endif %}
+
+            <a href="{% url 'issue_list' %}" class="button">Back to Issue List</a>
+        </div>
+    </div>
+
+    
+
 </body>
 </html>

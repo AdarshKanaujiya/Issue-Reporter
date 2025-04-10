@@ -1,45 +1,37 @@
 from huggingface_hub import login
 import os
-from dotenv import load_dotenv  # Import the load_dotenv function
-
-load_dotenv()  # Load environment variables from the .env file
-
-token = os.getenv('API_TOKEN')  # Get the API token from the environment
-login(token)  # Use the token for Hugging Face login
-
-
-
-from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse
-from django.contrib.auth import login, logout, authenticate
-from django.db import models
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User  # Example, if you're using User model
-from django.utils import timezone
-from django.core.files.storage import default_storage
-from .models import Issue,Vote
-from django.contrib import messages
-from django.http import HttpResponseBadRequest
-from .models import Issue, Comment, Vote
-from .forms import IssueForm, CommentForm
-from django.contrib.auth.forms import AuthenticationForm
-from django.contrib.auth import login, authenticate
-from django.shortcuts import render, redirect
-from django.core.mail import send_mail
-import reports.views as views
-from django.utils.timezone import now
 import json
 import uuid
-import torch
-from transformers import CLIPProcessor, CLIPModel
+from dotenv import load_dotenv
 from PIL import Image
-from django.utils import timezone
+import torch
 import requests
-import os
-from transformers import AutoModelForImageClassification
-from transformers import AutoImageProcessor
-import json
+from transformers import (
+    CLIPProcessor, 
+    CLIPModel,
+    AutoModelForImageClassification,
+    AutoImageProcessor
+)
+
+load_dotenv()
+token = os.getenv('API_TOKEN')
+login(token)
+
+from django.shortcuts import render, get_object_or_404, redirect
+from django.http import JsonResponse, HttpResponseBadRequest
+from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
+from django.contrib.auth.forms import AuthenticationForm
+from django.contrib import messages
+from django.db import models
+from django.db.models import Count
+from django.core.files.storage import default_storage
+from django.core.mail import send_mail
+from django.utils import timezone
+from django.utils.timezone import now, timedelta
+from .models import Issue, Comment, Vote
+from .forms import IssueForm, CommentForm
 nsfw_processor = AutoImageProcessor.from_pretrained("google/vit-base-patch16-224")
 nsfw_model = AutoModelForImageClassification.from_pretrained("google/vit-base-patch16-224")
 model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
@@ -109,16 +101,53 @@ def forward_to_government(request, issue_id):
 def issue_list(request):
     issues = Issue.objects.all()  # Get all issues
     issues_json = json.dumps([{
-    'id': issue.id,
-    'title': issue.title,
-    'status':issue.status,
-    'description': issue.description,
-    'location': issue.location,
-    'lat': issue.lat,
-    'lng': issue.lng,
+        'id': issue.id,
+        'title': issue.title,
+        'status': issue.status,
+        'description': issue.description,
+        'location': issue.location,
+        'lat': issue.lat,
+        'lng': issue.lng,
     } for issue in issues])
 
-    return render(request, 'reports/issue_list.html', {'issues': issues, 'issues_json': issues_json})
+    # Generate analytics data
+    now = timezone.now()
+    
+    # Weekly analytics
+    week_issues = Issue.objects.filter(created_at__gte=now-timezone.timedelta(days=7))
+    week_data = [
+        {'status': 'Pending', 'count': week_issues.filter(status='Pending').count()},
+        {'status': 'In Progress', 'count': week_issues.filter(status='In Progress').count()},
+        {'status': 'Resolved', 'count': week_issues.filter(status='Resolved').count()}
+    ]
+    
+    # Monthly analytics
+    month_issues = Issue.objects.filter(created_at__gte=now-timezone.timedelta(days=30))
+    month_data = [
+        {'status': 'Pending', 'count': month_issues.filter(status='Pending').count()},
+        {'status': 'In Progress', 'count': month_issues.filter(status='In Progress').count()},
+        {'status': 'Resolved', 'count': month_issues.filter(status='Resolved').count()}
+    ]
+    
+    # Yearly analytics
+    year_issues = Issue.objects.filter(created_at__gte=now-timezone.timedelta(days=365))
+    year_data = [
+        {'status': 'Pending', 'count': year_issues.filter(status='Pending').count()},
+        {'status': 'In Progress', 'count': year_issues.filter(status='In Progress').count()},
+        {'status': 'Resolved', 'count': year_issues.filter(status='Resolved').count()}
+    ]
+    
+    analytics_json = json.dumps({
+        'week': week_data,
+        'month': month_data,
+        'year': year_data
+    })
+
+    return render(request, 'reports/issue_list.html', {
+        'issues': issues,
+        'issues_json': issues_json,
+        'analytics_json': analytics_json
+    })
 
 
 
@@ -187,21 +216,6 @@ def report_issue(request):
 
     return render(request, "reports/report_issue.html")
 
-# def report_issue(request):
-#     if request.method == 'POST':
-#         form = IssueForm(request.POST, request.FILES)
-#         if form.is_valid():
-#             issue = form.save(commit=False)
-#             issue.status = 'Pending'  # Set default status
-#             if request.user.is_authenticated:
-#                 issue.user = request.user
-#             issue.save()
-#             return JsonResponse({'message': 'Issue reported successfully'}, status=200)
-#     else:
-#         form = IssueForm()
-#     return render(request, 'reports/report_issue.html', {'form': form})
-
-# views.py
 
 
 class CommentView(models.Model):
@@ -328,15 +342,18 @@ def is_image_relevant(image, title, description, category):
     """Checks if the uploaded image is relevant to the issue using CLIP."""
     try:
         image = Image.open(image).convert("RGB")
+        
+        # More specific text inputs for comparison
         text_inputs = [
-            title, 
-            description, 
-            category,  
-            "A completely unrelated photo", 
-            "A random image that does not match the issue", 
-            "A meme or joke image", 
-            " distorted, or irrelevant object"
-]
+            f"A photo showing {title} issue", 
+            f"Image of {description}",
+            f"{category} problem visible in photo",
+            "A clear photo documenting a community issue",
+            "A completely unrelated photo or meme",
+            "A random image that doesn't match the issue",
+            "A joke, meme, or personal photo",
+            "Blurry, distorted, or irrelevant image"
+        ]
 
 
         inputs = processor(text=text_inputs, images=image, return_tensors="pt", padding=True)
@@ -354,18 +371,20 @@ def is_image_relevant(image, title, description, category):
         logits_per_image = outputs.logits_per_image
         scores = logits_per_image.softmax(dim=1)  # Normalize scores
 
-        # Get the highest similarity score among relevant texts
-        issue_score = max(scores[0][:3]).item()  # First three texts are relevant
-        unrelated_score = max(scores[0][3:]).item()  # Scores for "unrelated" labels
+        # Get scores - first 4 are relevant, last 4 are irrelevant
+        issue_score = max(scores[0][:4]).item()
+        unrelated_score = max(scores[0][4:]).item()
 
         print(f"[DEBUG] CLIP relevance score: {issue_score}, Unrelated Score: {unrelated_score}")
 
-        # The image is relevant if issue_score is significantly higher than unrelated_score
-        if issue_score > 0.65 and (issue_score - unrelated_score) > 0.30:
+        # Stricter thresholds for relevance
+        if issue_score > 0.75 and (issue_score - unrelated_score) > 0.40:
             return True
-        else:
-            print("[INFO] Irrelevant image detected. Please upload an image related to the issue.")
-            return False  
+        elif issue_score > 0.85:  # Very high relevance overrides difference threshold
+            return True
+            
+        print(f"[INFO] Image rejected. Relevance: {issue_score:.2f}, Unrelated: {unrelated_score:.2f}")
+        return False
             
     except Exception as e:
         print(f"[ERROR] Image relevance check failed: {e}")
@@ -416,10 +435,6 @@ def register(request):
 
     return render(request, "reports/register.html")
 
-from django.contrib.auth import login, authenticate, logout
-from django.contrib import messages
-from django.shortcuts import render, redirect
-from .models import Issue
 
 # User login view
 def user_login(request):
@@ -458,3 +473,39 @@ def user_issues(request):
 def view_issues(request):
     issues = Issue.objects.all().order_by('-created_at')  # Fetch all issues sorted by latest
     return render(request, 'reports/view_issues.html', {'issues': issues})
+
+def home_view(request):
+    # Get all issues
+    issues = Issue.objects.all()
+
+    # Prepare map data
+    issues_json = json.dumps([
+        {
+            'title': issue.title,
+            'description': issue.description,
+            'status': issue.status,
+            'location': issue.location,
+            'lat': issue.lat,
+            'lng': issue.lng
+        } for issue in issues
+    ])
+
+    # Time ranges
+    today = now().date()
+    week_ago = today - timedelta(days=7)
+    month_ago = today - timedelta(days=30)
+    year_ago = today - timedelta(days=365)
+
+    def get_counts(since):
+        return Issue.objects.filter(created_at__gte=since).values('status').annotate(count=Count('status'))
+
+    analytics = {
+        "week": list(get_counts(week_ago)),
+        "month": list(get_counts(month_ago)),
+        "year": list(get_counts(year_ago))
+    }
+
+    return render(request, 'home.html', {
+    'issues_json': json.dumps(issues),
+    'analytics_json': json.dumps(analytics)  # This must exist
+})
