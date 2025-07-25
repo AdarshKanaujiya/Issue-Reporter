@@ -11,3 +11,4 @@ django-rest-framework
 googlemaps
 gunicorn
 whitenoise
+python-dotenv
