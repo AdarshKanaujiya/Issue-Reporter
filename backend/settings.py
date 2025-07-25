@@ -10,7 +10,12 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/2.2/ref/settings/
 """
 
+# import os
+# At the end of settings.py
 import os
+print(f"DEBUG: {DEBUG}")
+print(f"MEDIA_ROOT: {MEDIA_ROOT}")
+print(f"MEDIA_URL: {MEDIA_URL}")
 
 import dotenv
 

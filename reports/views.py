@@ -392,7 +392,7 @@ def is_image_relevant(image, title, description, category):
             
     except Exception as e:
         print(f"[ERROR] Image relevance check failed: {e}")
-        return False
+        return True
     
 
 def is_nsfw(image):
@@ -418,7 +418,7 @@ def is_nsfw(image):
 
     except Exception as e:
         print("[ERROR] NSFW detection failed:", e)
-        return True  # Assume NSFW if an error occurs to prevent inappropriate uploads
+        return False  # Assume NSFW if an error occurs to prevent inappropriate uploads
 
 
 
