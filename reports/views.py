@@ -6,12 +6,12 @@ from dotenv import load_dotenv
 from PIL import Image
 import torch
 import requests
-from transformers import (
-    CLIPProcessor, 
-    CLIPModel,
-    AutoModelForImageClassification,
-    AutoImageProcessor
-)
+# from transformers import (
+#     CLIPProcessor, 
+#     CLIPModel,
+#     AutoModelForImageClassification,
+#     AutoImageProcessor
+# )
 
 load_dotenv()
 token = os.getenv('API_TOKEN')
@@ -32,10 +32,10 @@ from django.utils import timezone
 from django.utils.timezone import now, timedelta
 from .models import Issue, Comment, Vote
 from .forms import IssueForm, CommentForm
-nsfw_processor = AutoImageProcessor.from_pretrained("google/vit-base-patch16-224")
-nsfw_model = AutoModelForImageClassification.from_pretrained("google/vit-base-patch16-224")
-model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
-processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
+# nsfw_processor = AutoImageProcessor.from_pretrained("google/vit-base-patch16-224")
+# nsfw_model = AutoModelForImageClassification.from_pretrained("google/vit-base-patch16-224")
+# model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
+# processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
 
 
 VULGAR_WORDS = ['badword1', 'badword2', 'badword3']
@@ -341,6 +341,10 @@ def search_issue(request):
 def is_image_relevant(image, title, description, category):
     """Checks if the uploaded image is relevant to the issue using CLIP."""
     try:
+        from transformers import CLIPProcessor, CLIPModel
+        from PIL import Image
+        model = CLIPModel.from_pretrained("openai/clip-vit-base-patch32")
+        processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
         image = Image.open(image).convert("RGB")
         
         # More specific text inputs for comparison
@@ -394,6 +398,12 @@ def is_image_relevant(image, title, description, category):
 def is_nsfw(image):
     """Detects NSFW content in an uploaded image."""
     try:
+        from transformers import AutoModelForImageClassification, AutoImageProcessor
+        from PIL import Image
+         # Load models inside the function
+        nsfw_processor = AutoImageProcessor.from_pretrained("google/vit-base-patch16-224")
+        nsfw_model = AutoModelForImageClassification.from_pretrained("google/vit-base-patch16-224")
+        
         image = Image.open(image)  # Open image from uploaded file
         inputs = nsfw_processor(images=image, return_tensors="pt")
         outputs = nsfw_model(**inputs)
