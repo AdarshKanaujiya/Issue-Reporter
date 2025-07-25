@@ -9,3 +9,5 @@ pillow
 django-cors-headers
 django-rest-framework
 googlemaps
+gunicorn
+whitenoise

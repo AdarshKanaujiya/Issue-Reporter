@@ -1,0 +1,123 @@
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #f0f4f8;
+    margin: 0;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1200px;
+    margin: auto;
+    padding: 20px;
+}
+
+h2 {
+    color: white;
+    text-align: center;
+    background-color: #4CAF50;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    font-size: 28px;
+}
+
+.login {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background-color: #ff5722;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 25px;
+    text-align: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.login a {
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.login a:hover {
+    text-decoration: underline;
+}
+
+#map {
+    height: 600px;
+    width: 100%;
+    margin-top: 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    border: 2px solid #003366;
+    position: relative;
+}
+
+.button-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 20px 0;
+    border: none;
+    border-radius: 25px;
+    cursor: pointer;
+    text-align: center;
+    width: 100%;
+    font-size: 18px;
+    margin: 10px 0;
+    transition: background-color 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.button:hover {
+    background-color: #45a049;
+}
+
+.recenter-button {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    background-color: #003366;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    transition: background-color 0.3s;
+    z-index: 1000;
+}
+
+.recenter-button:hover {
+    background-color: #002244;
+}
+
+.recenter-button span {
+    font-size: 24px;
+}
+
+@media (max-width: 768px) {
+    .button {
+        width: 100%;
+        font-size: 16px;
+    }
+    #map {
+        height: 300px;
+    }
+    h2 {
+        font-size: 24px;
+    }
+}
