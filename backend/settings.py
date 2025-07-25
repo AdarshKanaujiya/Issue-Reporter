@@ -33,7 +33,7 @@ if not SECRET_KEY:
     raise ValueError("No SECRET_KEY set for Django application. Please set it in the .env file.")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'issue-reporter-uazm.onrender.com']
 
