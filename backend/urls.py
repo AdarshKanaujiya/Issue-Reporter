@@ -26,5 +26,5 @@ urlpatterns = [
     path('', include('reports.urls')),  # Redirect or include the 'issues' URL pattern for the root path
 ]
 
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# Always serve media files in development and production
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
